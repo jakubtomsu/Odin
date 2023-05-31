@@ -1114,8 +1114,13 @@ testing_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
                                old_memory: rawptr, old_size: int, loc := #caller_location) -> (result: []byte, err: Allocator_Error) {
 	data := cast(^Testing_Allocator)allocator_data
 
-	if rand.float32() < data.error_chance {
-		return nil, .Out_Of_Memory
+	switch mode {
+	case .Alloc, .Alloc_Non_Zeroed, .Resize:
+		if rand.float32() < data.error_chance {
+			return nil, .Out_Of_Memory
+		}
+	case .Free, .Free_All, .Query_Features, .Query_Info:
+		// Ignore
 	}
 
 	return data.backing.procedure(
