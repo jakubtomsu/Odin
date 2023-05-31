@@ -1079,7 +1079,7 @@ profiling_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
 		location = loc,
 	)
 	duration := time.since(start_time)
-	
+
 	data.modes[mode].count += 1
 	data.modes[mode].time += duration
 
