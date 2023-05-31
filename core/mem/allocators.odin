@@ -1067,7 +1067,8 @@ profiling_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
                                  old_memory: rawptr, old_size: int, loc := #caller_location) -> (result: []byte, err: Allocator_Error) {
 	data := cast(^Profiling_Allocator)allocator_data
 
-	start_time := time.now()
+	start_tick := time.tick_now()
+    
 	result, err = data.backing.procedure(
 		allocator_data = data.backing.data,
 		mode = mode,
@@ -1077,10 +1078,9 @@ profiling_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
 		old_size = old_size,
 		location = loc,
 	)
-	duration := time.since(start_time)
-
+    
+	data.modes[mode].time += time.tick_since(start_tick)
 	data.modes[mode].count += 1
-	data.modes[mode].time += duration
 
 	return
 }
