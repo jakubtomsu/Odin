@@ -4,7 +4,6 @@ import "core:intrinsics"
 import "core:runtime"
 import "core:sync"
 import "core:time"
-import "core:math/rand"
 
 nil_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
                            size, alignment: int,
@@ -1084,52 +1083,4 @@ profiling_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
 	data.modes[mode].time += duration
 
 	return
-}
-
-
-// Allocator for testing control flow edge cases like allocation failures.
-// Note: uses global rand.
-Testing_Allocator :: struct {
-	backing:      Allocator,
-	error_chance: f32, // [0..1]
-}
-
-testing_allocator_init :: proc(t: ^Testing_Allocator, error_chance: f32 = 0.05, backing := context.allocator) {
-	t^ = {
-		backing = backing,
-		error_chance = error_chance,
-	}
-}
-
-@(require_results)
-testing_allocator :: proc(t: ^Testing_Allocator) -> Allocator {
-	return {
-		procedure = testing_allocator_proc,
-		data = t,
-	}
-}
-
-testing_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
-                               size, alignment: int,
-                               old_memory: rawptr, old_size: int, loc := #caller_location) -> (result: []byte, err: Allocator_Error) {
-	data := cast(^Testing_Allocator)allocator_data
-
-	switch mode {
-	case .Alloc, .Alloc_Non_Zeroed, .Resize:
-		if rand.float32() < data.error_chance {
-			return nil, .Out_Of_Memory
-		}
-	case .Free, .Free_All, .Query_Features, .Query_Info:
-		// Ignore
-	}
-
-	return data.backing.procedure(
-		allocator_data = data.backing.data,
-		mode = mode,
-		size = size,
-		alignment = alignment,
-		old_memory = old_memory,
-		old_size = old_size,
-		location = loc,
-	)
 }
