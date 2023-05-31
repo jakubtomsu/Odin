@@ -3,6 +3,8 @@ package mem
 import "core:intrinsics"
 import "core:runtime"
 import "core:sync"
+import "core:time"
+import "core:math/rand"
 
 nil_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
                            size, alignment: int,
@@ -982,3 +984,147 @@ tracking_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
 	return
 }
 
+
+// Very lightweight tracking allocator, which counts allocations and frees.
+// If counter isn't zero when you're finished then there were memory leaks, bad frees, etc.
+Counting_Allocator :: struct {
+	backing: Allocator,
+	counter: int,
+}
+
+counting_allocator_init :: proc(c: ^Counting_Allocator, backing := context.allocator) {
+	c^ = {
+		backing = backing,
+		counter = 0,
+	}
+}
+
+@(require_results)
+counting_allocator :: proc(c: ^Counting_Allocator) -> Allocator {
+	return {
+		procedure = counting_allocator_proc,
+		data = c,
+	}
+}
+
+counting_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
+                                size, alignment: int,
+                                old_memory: rawptr, old_size: int, loc := #caller_location) -> (result: []byte, err: Allocator_Error) {
+	data := cast(^Counting_Allocator)allocator_data
+
+	result, err = data.backing.procedure(
+		allocator_data = data.backing.data,
+		mode = mode,
+		size = size,
+		alignment = alignment,
+		old_memory = old_memory,
+		old_size = old_size,
+		location = loc,
+	)
+
+	if err == nil {
+		switch mode {
+		case .Query_Features, .Query_Info, .Resize:
+			// Ignore
+		case .Alloc, .Alloc_Non_Zeroed:
+			data.counter += 1
+		case .Free:
+			data.counter -= 1
+		case .Free_All:
+			data.counter = 0
+		}
+	}
+	return
+}
+
+
+Profiling_Allocator_Mode_Info :: struct {
+	count: int,
+	time:  time.Duration,
+}
+
+// Allocator for profiling number of allocations and their duration.
+Profiling_Allocator :: struct {
+	backing: Allocator,
+	modes:   [Allocator_Mode]Profiling_Allocator_Mode_Info,
+}
+
+profiling_allocator_init :: proc(data: ^Profiling_Allocator, backing := context.allocator) {
+	data^ = {
+		backing = backing,
+	}
+}
+
+@(require_results)
+profiling_allocator :: proc(data: ^Profiling_Allocator) -> Allocator {
+	return {
+		procedure = profiling_allocator_proc,
+		data = data,
+	}
+}
+
+profiling_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
+                                 size, alignment: int,
+                                 old_memory: rawptr, old_size: int, loc := #caller_location) -> (result: []byte, err: Allocator_Error) {
+	data := cast(^Profiling_Allocator)allocator_data
+
+	start_time := time.now()
+	result, err = data.backing.procedure(
+		allocator_data = data.backing.data,
+		mode = mode,
+		size = size,
+		alignment = alignment,
+		old_memory = old_memory,
+		old_size = old_size,
+		location = loc,
+	)
+	duration := time.since(start_time)
+	
+	data.modes[mode].count += 1
+	data.modes[mode].time += duration
+
+	return
+}
+
+
+// Allocator for testing control flow edge cases like allocation failures.
+// Note: uses global rand.
+Testing_Allocator :: struct {
+	backing:      Allocator,
+	error_chance: f32, // [0..1]
+}
+
+testing_allocator_init :: proc(t: ^Testing_Allocator, error_chance: f32 = 0.05, backing := context.allocator) {
+	t^ = {
+		backing = backing,
+		error_chance = error_chance,
+	}
+}
+
+@(require_results)
+testing_allocator :: proc(t: ^Testing_Allocator) -> Allocator {
+	return {
+		procedure = testing_allocator_proc,
+		data = t,
+	}
+}
+
+testing_allocator_proc :: proc(allocator_data: rawptr, mode: Allocator_Mode,
+                               size, alignment: int,
+                               old_memory: rawptr, old_size: int, loc := #caller_location) -> (result: []byte, err: Allocator_Error) {
+	data := cast(^Testing_Allocator)allocator_data
+
+	if rand.float32() < data.error_chance {
+		return nil, .Out_Of_Memory
+	}
+
+	return data.backing.procedure(
+		allocator_data = data.backing.data,
+		mode = mode,
+		size = size,
+		alignment = alignment,
+		old_memory = old_memory,
+		old_size = old_size,
+		location = loc,
+	)
+}
