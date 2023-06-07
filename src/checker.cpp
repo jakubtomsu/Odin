@@ -971,13 +971,13 @@ gb_internal void init_universal(void) {
 
 	{
 		GlobalEnumValue values[TargetArch_COUNT] = {
-			{"Unknown", TargetArch_Invalid},
-			{"amd64",   TargetArch_amd64},
-			{"i386",    TargetArch_i386},
-			{"arm32",   TargetArch_arm32},
-			{"arm64",   TargetArch_arm64},
-			{"wasm32",  TargetArch_wasm32},
-			{"wasm64",  TargetArch_wasm64},
+			{"Unknown",   TargetArch_Invalid},
+			{"amd64",     TargetArch_amd64},
+			{"i386",      TargetArch_i386},
+			{"arm32",     TargetArch_arm32},
+			{"arm64",     TargetArch_arm64},
+			{"wasm32",    TargetArch_wasm32},
+			{"wasm64p32", TargetArch_wasm64p32},
 		};
 
 		auto fields = add_global_enum_type(str_lit("Odin_Arch_Type"), values, gb_count_of(values));
@@ -1000,8 +1000,6 @@ gb_internal void init_universal(void) {
 
 	{
 		GlobalEnumValue values[TargetEndian_COUNT] = {
-			{"Unknown", TargetEndian_Invalid},
-
 			{"Little",  TargetEndian_Little},
 			{"Big",     TargetEndian_Big},
 		};
@@ -3892,6 +3890,13 @@ gb_internal void check_collect_value_decl(CheckerContext *c, Ast *decl) {
 						cc = ProcCC_CDecl;
 						if (c->foreign_context.default_cc > 0) {
 							cc = c->foreign_context.default_cc;
+						} else if (is_arch_wasm()) {
+							begin_error_block();
+							error(init, "For wasm related targets, it is required that you either define the"
+							            " @(default_calling_convention=<string>) on the foreign block or"
+							            " explicitly assign it on the procedure signature");
+							error_line("\tSuggestion: when dealing with normal Odin code (e.g. js_wasm32), use \"contextless\"; when dealing with Emscripten like code, use \"c\"\n");
+							end_error_block();
 						}
 					}
 					e->Procedure.link_prefix = c->foreign_context.link_prefix;
