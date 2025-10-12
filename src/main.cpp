@@ -2033,6 +2033,10 @@ gb_internal void show_defineables(Checker *c) {
 	}
 }
 
+struct PackageCompilationInfo {
+	u64 total_entities[Entity_Count];
+};
+
 gb_internal void show_timings(Checker *c, Timings *t) {
 	Parser *p      = c->parser;
 	isize lines    = p->total_line_count;
@@ -2158,6 +2162,93 @@ gb_internal void show_timings(Checker *c, Timings *t) {
 			gb_printf_err("us/bytes     - %.3f\n", 1.0e6*total_time/cast(f64)total_file_size);
 			gb_printf_err("\n");
 		}
+
+		
+		gb_printf_err("Packages\n\n");
+		for (AstPackage *pkg : p->packages) {
+			gb_printf_err("Package %.*s \n", LIT(pkg->name));
+			gb_printf_err("Full Path            - '%.*s' \n", LIT(pkg->fullpath));
+			gb_printf_err("File Count           - %i\n", pkg->files.count);
+			f64 pkg_frontend_time = 0.0;
+			i64 pkg_lines = 0;
+			i64 pkg_file_size = 0;
+			i64 pkg_tokens = 0;
+			for (AstFile *file : pkg->files) {
+				pkg_frontend_time += file->time_to_parse + file->time_to_tokenize;
+				pkg_file_size += file->tokenizer.end - file->tokenizer.start;
+				pkg_tokens += file->tokens.count;
+				pkg_lines += file->tokenizer.line_count;
+			}
+			gb_printf_err("Total frontend time  - %.3f ms\n", 1000.0 * pkg_frontend_time);
+			gb_printf_err("Total lines          - %i\n", pkg_lines);
+			gb_printf_err("Total file size      - %i\n", pkg_file_size);
+			gb_printf_err("Total tokens         - %i\n", pkg_tokens);
+			gb_printf_err("\n");
+		}
+		gb_printf_err("\n");
+
+		StringMap<PackageCompilationInfo> packages = {};
+		string_map_init(&packages, 64);
+
+		gb_printf_err("Import graph \n");
+		for (AstPackage *pkg : p->packages) {
+			for (int i = 0; i < pkg->files.count; i++) {
+				AstFile *file = pkg->files[i];
+				for(Ast *imp : file->imports) {
+					GB_ASSERT(imp->kind == Ast_ImportDecl);
+
+					bool exists = false;
+					for (int j = i + 1; j < pkg->files.count; j++) {
+						AstFile *other_file = pkg->files[j];
+						for(Ast *other_imp : other_file->imports) {
+							GB_ASSERT(other_imp->kind == Ast_ImportDecl);
+							if (0 == string_compare(imp->ImportDecl.fullpath, other_imp->ImportDecl.fullpath)) {
+								exists = true;
+								break;
+							}
+						}
+						if (exists) break;
+					}
+
+					if (!exists) {
+						gb_printf_err("%.*s -> %.*s;\n", LIT(pkg->name), LIT(filename_without_directory(imp->ImportDecl.fullpath)));
+					}
+				}
+			}
+		}
+		gb_printf_err("\n");
+		
+		gb_printf_err("Entities\n");
+		for_array(i, c->info.entities) {
+			Entity *e = c->info.entities[i];
+			GB_ASSERT(e != nullptr);
+			// gb_printf_err("Entity %i: kind=%.*s, pkg=%.*s\n", i, LIT(entity_strings[e->kind]), LIT(e->pkg->name));
+
+			PackageCompilationInfo* info = string_map_get(&packages, e->pkg->name);
+			if (info == nullptr) {
+				string_map_set(&packages, e->pkg->name, PackageCompilationInfo{});
+				info = string_map_get(&packages, e->pkg->name);
+			}
+			GB_ASSERT(info != nullptr);
+
+			info->total_entities[e->kind] += 1;
+		}
+		gb_printf_err("\n");
+
+
+		gb_printf_err("Entities in Packages\n");
+		for (auto const &entry : packages) {
+			gb_printf_err("Package %20.*s:  ", LIT(entry.key));
+			u64 total = 0;
+			for (int kind = Entity_Constant; kind <= Entity_ProcGroup; kind++) {
+				gb_printf_err("%.*s=%5i, ", LIT(entity_strings[kind]), entry.value.total_entities[kind]);
+				total += entry.value.total_entities[kind];
+			}
+			gb_printf_err("Total=%6i (%.3f%%)\n", total, 100.0f * (f32)total / (f32)c->info.entities.count);
+		}
+
+		gb_printf_err("Total Definitions  - %i\n", c->info.definitions.count);
+		gb_printf_err("Total Entities     - %i\n", c->info.entities.count);
 	}
 }
 
