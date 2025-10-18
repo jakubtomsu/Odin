@@ -2197,6 +2197,8 @@ gb_internal GB_COMPARE_PROC(llvm_global_entity_cmp) {
 }
 
 gb_internal void lb_create_global_procedures_and_types(lbGenerator *gen, CheckerInfo *info, bool do_threading) {
+	gb_printf("\n\nCREATE GLOBAL PROCEDURES AND TYPES\n\n");
+
 	for (Entity *e : info->entities) {
 		String  name  = e->token.string;
 		Scope * scope = e->scope;
@@ -2204,6 +2206,8 @@ gb_internal void lb_create_global_procedures_and_types(lbGenerator *gen, Checker
 		if ((scope->flags & ScopeFlag_File) == 0) {
 			continue;
 		}
+	
+		gb_printf("\n\nENTITY %.*s\n\n", LIT(name));
 
 		Scope *package_scope = scope->parent;
 		GB_ASSERT(package_scope->flags & ScopeFlag_Pkg);
@@ -2931,6 +2935,8 @@ gb_internal void lb_generate_procedure(lbModule *m, lbProcedure *p) {
 	if (p->is_done.load(std::memory_order_relaxed)) {
 		return;
 	}
+	
+	gb_printf("\n\nPROCEDURE %.*s\n\n", LIT(p->name));
 
 	if (p->body != nullptr) { // Build Procedure
 		m->curr_procedure = p;

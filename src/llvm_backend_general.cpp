@@ -1835,6 +1835,10 @@ gb_internal LLVMTypeRef lb_type_internal(lbModule *m, Type *type) {
 	LLVMContextRef ctx = m->ctx;
 	i64 size = type_size_of(type); // Check size
 	gb_unused(size);
+	
+	if (type->kind == Type_Named || type->kind == Type_Struct) {
+		gb_printf("lb_type_internal %.*s: %s\n", LIT(type_strings[type->kind]), type_to_string(type));
+	}
 
 	GB_ASSERT(type != t_invalid);
 
@@ -2160,6 +2164,7 @@ gb_internal LLVMTypeRef lb_type_internal(lbModule *m, Type *type) {
 					lb_clone_struct_type(llvm_type, lb_type(m, base));
 
 					if (base->kind == Type_Struct) {
+						gb_printf("\tstruct remapping %i: %p\n", __LINE__, llvm_type);
 						map_set(&m->struct_field_remapping, cast(void *)llvm_type, lb_get_struct_remapping(m, base));
 						map_set(&m->struct_field_remapping, cast(void *)type, lb_get_struct_remapping(m, base));
 					}
@@ -2257,6 +2262,7 @@ gb_internal LLVMTypeRef lb_type_internal(lbModule *m, Type *type) {
 				field_remapping[0] = 0;
 
 				LLVMTypeRef struct_type = LLVMStructTypeInContext(ctx, fields, gb_count_of(fields), false);
+				gb_printf("\tstruct remapping %i: %p, remapping %p, %i\n", __LINE__, struct_type, field_remapping.data, field_remapping.count);
 				map_set(&m->struct_field_remapping, cast(void *)struct_type, field_remapping);
 				map_set(&m->struct_field_remapping, cast(void *)type, field_remapping);
 				return struct_type;
@@ -2316,6 +2322,7 @@ gb_internal LLVMTypeRef lb_type_internal(lbModule *m, Type *type) {
 			}
 
 			LLVMTypeRef struct_type = LLVMStructTypeInContext(ctx, fields.data, cast(unsigned)fields.count, requires_packing);
+			gb_printf("\tstruct remapping %i: %p, fields %p, %i, remapping %p, %i\n", __LINE__, struct_type, fields.data, fields.count, field_remapping.data, field_remapping.count);
 			map_set(&m->struct_field_remapping, cast(void *)struct_type, field_remapping);
 			map_set(&m->struct_field_remapping, cast(void *)type, field_remapping);
 			#if 0

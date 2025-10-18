@@ -1,0 +1,58 @@
+remap A 1e827f55b38
+remap B 1e827f55b38
+remap A 1e827f55b38
+lookup A OK
+remap B 1e827f55b38
+lookup B
+lookup A ERROR
+
+
+vs
+
+remap B 19d65d37ea8
+remap A 19d65d37ea8
+remap B 19d65d37ea8
+lookup B OK
+remap A
+lookup A OK
+
+
+
+
+
+
+
+...
+
+[DEBUG] [Section] LLVM Global Procedures and Types
+
+lb_type_internal Struct: struct {a: u16, b: u8}
+	REMAP LB_TYPE 1c30d36b4a8, fields 1c30c7242f0, 3, remapping 1c30c7242e0, len 2
+lb_type_internal Named: Bar, LB_TYPE 1c30d36b4a8
+lb_type_internal Struct: struct {a: u16, b: u8, c: u8}, LB_TYPE 1c30d36b4a8
+	REMAP LB_TYPE 1c30d36b4a8, fields 1c30c724500, 3, remapping 1c30c7244f0, len 3
+...
+
+[DEBUG] [Section] LLVM Procedure Generation
+...
+
+PROCEDURE do_bar:
+...
+lb_type_internal Struct: struct {a: u16, b: u8, c: u8}, LB_TYPE 1c30d36b990
+	REMAP LB_TYPE 1c30d36b4a8, fields 1c30c789ea0, 3, remapping 1c30c789e90, len 3
+lb_convert_struct_index Struct: 1 : struct {a: u16, b: u8, c: u8} : mapping 1c30c789e90, len 3, LB_TYPE 1c30d36b4a8
+lb_convert_struct_index Struct: 2 : struct {a: u16, b: u8, c: u8} : mapping 1c30c789e90, len 3, LB_TYPE 1c30d36b4a8
+
+PROCEDURE do_foo:
+lb_type_internal Struct: struct {a: u16, b: u8}
+	REMAP LB_TYPE 1c30d36b4a8, fields 1c30c78a410, 3, remapping 1c30c78a400, len 2
+lb_convert_struct_index Struct: 1 : struct {a: u16, b: u8} : mapping 1c30c78a400, len 2, LB_TYPE 1c30d36b4a8
+
+PROCEDURE do_foo2:
+lb_convert_struct_index Struct: 1 : struct {a: u16, b: u8} : mapping 1c30c78a400, len 2, LB_TYPE 1c30d36b4a8
+lb_convert_struct_index Struct: 0 : struct {a: u16, b: u8} : mapping 1c30c78a400, len 2, LB_TYPE 1c30d36b4a8
+
+PROCEDURE do_bar2:
+lb_convert_struct_index Struct: 2 : struct {a: u16, b: u8, c: u8} : mapping 1c30c78a400, len 2, LB_TYPE 1c30d36b4a8
+
+d:\projects\odin\src\array.cpp(68): Assertion Failure: `cast(usize)index < cast(usize)count` Index 2 is out of bounds ranges 0..<2

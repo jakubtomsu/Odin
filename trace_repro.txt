@@ -1,0 +1,80 @@
+[DEBUG] Selected microarch: skylake
+[DEBUG] Default microarch features: 64bit,64bit-mode,adx,aes,allow-light-256-bit,avx,avx2,bmi,bmi2,clflushopt,cmov,crc32,cx16,cx8,ermsb,f16c,false-deps-popcnt,fast-15bytenop,fast-gather,fast-scalar-fsqrt,fast-shld-rotate,fast-variable-crosslane-shuffle,fast-variable-perlane-shuffle,fast-vector-fsqrt,fma,fsgsbase,fxsr,idivq-to-divl,invpcid,lzcnt,macrofusion,mmx,movbe,no-bypass-delay-blend,no-bypass-delay-mov,no-bypass-delay-shuffle,nopl,pclmul,popcnt,prfchw,rdrnd,rdseed,sahf,slow-3ops-lea,sse,sse2,sse3,sse4.1,sse4.2,ssse3,vzeroupper,x87,xsave,xsavec,xsaveopt,xsaves
+[DEBUG] build_paths[0]: d:/projects/odin/repro.odin
+[DEBUG] build_paths[1]: 
+[DEBUG] build_paths[2]: 
+[DEBUG] build_paths[3]: C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/
+[DEBUG] build_paths[4]: C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x64/
+[DEBUG] build_paths[5]: C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/ucrt/x64/
+[DEBUG] build_paths[6]: d:/programs/VisualStudioCommunity2022/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/
+[DEBUG] build_paths[7]: d:/programs/VisualStudioCommunity2022/VC/Tools/MSVC/14.44.35207/lib/x64/
+[DEBUG] build_paths[8]: d:/projects/odin/repro.dll
+[DEBUG] build_paths[9]: d:/projects/odin/repro.pdb
+[DEBUG] [Section] init thread pool
+[DEBUG] [Section] init universal
+[DEBUG] [Section] parse files
+[DEBUG] [Section] init checker info
+[DEBUG] [Section] checker info: general
+[DEBUG] [Section] init proc queues
+[DEBUG] [Section] type check
+[DEBUG] [Section] map full filepaths to scope
+[DEBUG] [Section] init worker data
+[DEBUG] [Section] create file scopes
+[DEBUG] [Section] collect entities
+[DEBUG] [Section] export entities - pre
+[DEBUG] [Section] check_import_entities - sort packages
+[DEBUG] [Section] check_import_entities - collect file decls
+[DEBUG] [Section] check_import_entities - check delayed entities
+[DEBUG] [Section] export entities - post
+[DEBUG] [Section] add entities from packages
+[DEBUG] [Section] check all global entities
+[DEBUG] [Section] init preload
+[DEBUG] [Section] add global untyped expression to queue
+[DEBUG] [Section] check procedure bodies
+[DEBUG] [Section] check foreign import fullpaths
+[DEBUG] [Section] add entities from procedure bodies
+[DEBUG] [Section] check all scope usages
+[DEBUG] [Section] add basic type information
+[DEBUG] [Section] check for type cycles
+[DEBUG] [Section] check for inline cycles
+[DEBUG] [Section] check deferred procedures
+[DEBUG] [Section] check objc context provider procedures
+[DEBUG] [Section] calculate global init order
+[DEBUG] [Section] calculate_global_init_order: generate entity dependency graph
+[DEBUG] [Section] generate_entity_dependency_graph: Calculate edges for graph M - Part 1
+[DEBUG] [Section] generate_entity_dependency_graph: Calculate edges for graph M - Part 2a (init)
+[DEBUG] [Section] generate_entity_dependency_graph: Calculate edges for graph M - Part 2b (procs)
+[DEBUG] [Section] generate_entity_dependency_graph: Calculate edges for graph M - Part 2c (vars)
+[DEBUG] [Section] generate_entity_dependency_graph: Dependency Count Checker
+[DEBUG] [Section] calculate_global_init_order: priority queue create
+[DEBUG] [Section] calculate_global_init_order: queue sort
+[DEBUG] [Section] add type info for type definitions
+[DEBUG] [Section] update dependency tree for procedures
+[DEBUG] [Section] generate minimum dependency set
+[DEBUG] [Section] check bodies have all been checked
+[DEBUG] [Section] check #soa types
+[DEBUG] [Section] update minimum dependency set again
+[DEBUG] [Section] check test procedures
+[DEBUG] [Section] check entry point
+[DEBUG] [Section] check unchecked (safety measure)
+[DEBUG] Total Procedure Bodies Checked: 476
+[DEBUG] [Section] check unique package names
+[DEBUG] [Section] sanity checks
+[DEBUG] [Section] check instrumentation calls
+[DEBUG] [Section] add untyped expression values
+[DEBUG] [Section] initialize and check for collisions in type info array
+[DEBUG] [Section] sort init and fini procedures
+[DEBUG] [Section] check intrinsics.__entry_point usage
+[DEBUG] [Section] collate type info stuff
+[DEBUG] [Section] type check finish
+[DEBUG] [Section] LLVM API Code Gen (    4 modules )
+[DEBUG] [Section] LLVM Initializtion
+[DEBUG] [Section] LLVM Create Target Machine
+[DEBUG] CPU: skylake, Features: 
+[DEBUG] [Section] LLVM Global Variables
+[DEBUG] [Section] LLVM Runtime Objective-C Names Creation
+[DEBUG] [Section] LLVM Runtime Startup Creation (Global Variables & @(init))
+[DEBUG] [Section] LLVM Runtime Cleanup Creation & @(fini)
+[DEBUG] [Section] LLVM Global Procedures and Types
+[DEBUG] [Section] LLVM Procedure Generation
+d:\Odin\src\array.cpp(68): Assertion Failure: `cast(usize)index < cast(usize)count` Index 2 is out of bounds ranges 0..<2

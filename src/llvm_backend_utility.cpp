@@ -980,9 +980,12 @@ gb_internal lbStructFieldRemapping lb_get_struct_remapping(lbModule *m, Type *t)
 	LLVMTypeRef struct_type = lb_type(m, t);
 
 	mutex_lock(&m->types_mutex);
-
+	
+	gb_printf("LB TYPE %p ->\n", struct_type);
+	
 	auto *field_remapping = map_get(&m->struct_field_remapping, cast(void *)struct_type);
 	if (field_remapping == nullptr) {
+		gb_printf("SECOND MAPPING ->\n");
 		field_remapping = map_get(&m->struct_field_remapping, cast(void *)t);
 	}
 
@@ -995,6 +998,7 @@ gb_internal lbStructFieldRemapping lb_get_struct_remapping(lbModule *m, Type *t)
 gb_internal i32 lb_convert_struct_index(lbModule *m, Type *t, i32 index) {
 	if (t->kind == Type_Struct) {
 		auto field_remapping = lb_get_struct_remapping(m, t);
+		gb_printf("lb_convert_struct_index %.*s: %i : %s : mapping %p %i\n", LIT(type_strings[t->kind]), index, type_to_string(t), field_remapping.data, field_remapping.count);
 		return field_remapping[index];
 	} else if (is_type_any(t) && build_context.ptr_size == 4) {
 		GB_ASSERT(t->kind == Type_Basic);
